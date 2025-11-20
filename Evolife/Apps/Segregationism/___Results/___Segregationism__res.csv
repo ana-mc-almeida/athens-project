@@ -1,2 +1,2 @@
-Date;Aging;DisplayPeriod;Icon;LandSize;LowerTolerance;LowerToleranceAgent;NbColours;NeighbourhoodRadius;NumberOfGroups;PopulationSize;ResultDir;ScenarioName;TimeLimit;Title;Tolerance;LastStep;average_satisfaction_of_red_individuals;average_satisfaction_of_blue_individuals
-251120144910;1;5;settler.jpg;40;10;10;2;1;2;1300;./___Results;Segregationism;300000;Evolife_Segregationism;70;204390;99.07;99.09
+Date;Aging;DisplayPeriod;Icon;LandSize;LowerTolerance;LowerToleranceAgent;NbColours;NeighbourhoodRadius;NumberOfGroups;PatternPath;PopulationSize;ResultDir;ScenarioName;TimeLimit;Title;Tolerance;startingPattern;LastStep;average_satisfaction_of_red_individuals;average_satisfaction_of_blue_individuals
+251120164952;0;5;settler.jpg;40;10;10;2;1;2;random;1300;./___Results;Segregationism;300000;Evolife_Segregationism;40;None;160860;36.14;35.91

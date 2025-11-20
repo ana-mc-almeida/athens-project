@@ -58,6 +58,11 @@
 			<Description><info><![CDATA[Shelling Segregation with Aging (0 to run without aging, 1 with aging)]]></info></Description>
 			<Value>0</Value>
 		</Parameter>
+		<Parameter>
+			<Name>PatternPath</Name>
+			<Description><info><![CDATA[Path to JSON file containing initial pattern (leave empty for random distribution)]]></info></Description>
+			<Value></Value>
+		</Parameter>
 	</Parameter>
 	<Parameter>
 		<Name>Scenario</Name>

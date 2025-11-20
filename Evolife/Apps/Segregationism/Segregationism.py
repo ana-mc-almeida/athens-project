@@ -49,6 +49,7 @@ import Evolife.Ecology.Population			as EP
 import Evolife.Graphics.Landscape			as Landscape
 
 
+import json
 import random
 # random.seed(4444)
 
@@ -68,7 +69,18 @@ class Scenario(EPar.Parameters):
 		# Global variables		    #
 		#############################
 		AvailableColours = ['red', 'blue', 'brown', 'yellow', 7] + list(range(8, 21))	# corresponds to Evolife colours
-		self.Colours = AvailableColours[:self['NbColours']]	
+		self.Colours = AvailableColours[:self['NbColours']]
+
+		startingPattern = None
+		if self['PatternPath'] != "random":
+			patternPath = self['PatternPath']
+			try:
+				with open(patternPath, 'r') as f:
+					startingPattern = json.load(f)
+			except Exception as e:
+				print(f"Error loading pattern from {patternPath}: {e}")
+				startingPattern = []
+		self.addParameter('startingPattern',startingPattern)	# may be used to create coloured groups
 		self.addParameter('NumberOfGroups', self['NbColours'])	# may be used to create coloured groups
 		self.addParameter('LowerToleranceAgent', self['LowerTolerance'])	# may be used to create coloured groups
 		self.addParameter('Aging', self['Aging'])	# used to activate aging
@@ -88,11 +100,14 @@ class Individual(EI.Individual):
 
 	def setColour(self, Colour):	
 		self.Colour = Colour
-		self.moves(0)	# gets a location
+		print("self.Scenario[\"startingPattern\"] =", self.Scenario["startingPattern"])
+		if self.Scenario["startingPattern"] is None:
+			self.moves(0)	# gets a location
 
 	def locate(self, NewPosition, Erase=True):
 		"""	place individual at a specific location on the ground 
 		"""
+		print(f"Locating agent {self.ID} of colour {self.Colour} at {NewPosition}")
 		if NewPosition is not None \
 			and not Land.Modify(NewPosition, self.Colour, check=True): 	# new position on Land
 			return False		 # NewPosition is not available  
@@ -191,6 +206,51 @@ class Population(EP.Population):
 		self.Moves = 0  # counts the number of times agents have moved
 		self.CallsSinceLastMove = 0  # counts the number of times agents were proposed to move since last actual move
 		self.SimulationStep = 0
+		if self.Scenario['startingPattern'] is not None:
+			self.applyStartingPattern()
+  
+	def applyStartingPattern(self):
+		"""Places individuals on Land according to StartingPattern.
+		The pattern is a flat list of tokens (colour names or None). The list is read
+		row-major and truncated/padded to Land size. For each token matching a colour,
+		we pick an individual from the corresponding population group that has no
+		location yet and place it at the target cell.
+		"""
+		print("Applying StartingPattern...")
+		Pattern = self.Scenario['startingPattern']
+		# If pattern is a string expression (like "P='0'*127+..."), try to eval it
+		if isinstance(Pattern, str) and Pattern.startswith(('P=',"p='")):
+			try:
+				Pattern = eval(Pattern[2:])
+			except Exception:
+				# fallback: treat as empty
+				Pattern = []
+		# Ensure list-like
+		if not isinstance(Pattern, (list, tuple)):
+			Pattern = list(Pattern)
+		print("Current Pattern:", Pattern)
+		width, height = Land.Width, Land.Height
+		total = width * height
+		# truncate or extend pattern
+		Pattern = list(Pattern)[:total] + [None] * max(0, total - len(Pattern))
+		print(f"Final Pattern (length {len(Pattern)}):", Pattern)
+		# Build a dict colour -> list of individuals without location
+		free_inds = {c: [i for i in self.groups[idx].members if i.location is None]
+				for idx, c in enumerate(self.Colours)}
+		for idx, token in enumerate(Pattern):
+			if token is None: 
+				continue
+			# token should match a colour in self.Colours; if it's not, skip
+			if token not in self.Colours: 
+				continue
+			pos = (idx % width, idx // width)
+			# find a free individual of that colour
+			lst = free_inds.get(token, [])
+			if not lst: 
+				continue
+			ind = lst.pop(0)
+			# locate the individual at the position (use Erase=False to avoid erasing previous)
+			ind.locate(pos)
 
 	def createGroup(self, ID=0, Size=0):
 		return Group(self.Scenario, ID=ID, Size=Size)
@@ -235,7 +295,7 @@ if __name__ == "__main__":
 	Observer = Observer(Gbl)	  # Observer contains statistics
 	Land = Landscape.Landscape(Gbl['LandSize'])	  # logical settlement grid
 	Land.setAdmissible(Gbl.Colours)
-	Pop = Population(Gbl, Observer)   
+	Pop = Population(Gbl, Observer)
 	
 	# Observer.recordInfo('Background', 'white')
 	Observer.recordInfo('FieldWallpaper', 'white')
