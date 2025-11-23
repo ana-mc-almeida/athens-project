@@ -130,8 +130,14 @@ class Individual(EI.Individual):
 		Same = Statistics[self.Colour]
 		Different = sum([Statistics[C] for C in self.Scenario.Colours if C != self.Colour])	
 		
+		if (self.agingType == 1):
+			age = simulationStep - self.lastMoved
+			tolerance = self.Scenario['Tolerance'] + (age // 100)  # tolerance increases with age
+		else:
+			tolerance = self.Scenario['Tolerance']
+
 		if (Same + Different) and \
-				((100 * Different) / (Same + Different) > self.Scenario['Tolerance'] or \
+				((100 * Different) / (Same + Different) > tolerance or \
 					(100 * Different) / (Same + Different) < self.Scenario['LowerToleranceAgent']):	
 			self.satisfied = False
    
