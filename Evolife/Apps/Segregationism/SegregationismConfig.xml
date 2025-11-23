@@ -46,7 +46,7 @@
 		<Parameter Scenario="Segregationism Convention">
 			<Name>Tolerance</Name>
 			<Description><info><![CDATA[Percentage of individuals that are different (= different / (same + different)) above which one decides to move.]]></info></Description>
-			<Value>40</Value>
+			<Value>70</Value>
 		</Parameter>
 		<Parameter Scenario="Segregationism Convention">
 			<Name>LowerTolerance</Name>
@@ -55,13 +55,13 @@
 		</Parameter>
 		<Parameter Scenario="Segregationism Convention">
 			<Name>Aging</Name>
-			<Description><info><![CDATA[Shelling Segregation with Aging (0 to run without aging, 1 with aging)]]></info></Description>
-			<Value>0</Value>
+			<Description><info><![CDATA[Shelling Segregation with Aging:<br>- 0: to run without aging<br>- 1: tolerance scales with age<br>- 2: get tolerant to your neighbors<br>- 3: even if not satisfied, don't want to move]]></info></Description>
+			<Value>1</Value>
 		</Parameter>
 		<Parameter>
 			<Name>PatternPath</Name>
-			<Description><info><![CDATA[Path to JSON file containing initial pattern (leave empty for random distribution)]]></info></Description>
-			<Value></Value>
+			<Description><info><![CDATA[Path to JSON file containing initial pattern ("random" for random distribution)]]></info></Description>
+			<Value>random</Value>
 		</Parameter>
 	</Parameter>
 	<Parameter>

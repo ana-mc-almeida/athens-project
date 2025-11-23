@@ -94,20 +94,18 @@ class Individual(EI.Individual):
 		EI.Individual.__init__(self, Scenario, ID=ID, Newborn=Newborn)
 		self.Colour = Scenario.Colours[0]	# just to initialize
 		self.satisfied = False	# if false, the individual will move
-		self.activateAging = Scenario['Aging']
+		self.agingType = Scenario['Aging']
 		self.lastMoved = 0
 		self.location = None
 
 	def setColour(self, Colour):	
 		self.Colour = Colour
-		print("self.Scenario[\"startingPattern\"] =", self.Scenario["startingPattern"])
 		if self.Scenario["startingPattern"] is None:
 			self.moves(0)	# gets a location
 
 	def locate(self, NewPosition, Erase=True):
 		"""	place individual at a specific location on the ground 
 		"""
-		print(f"Locating agent {self.ID} of colour {self.Colour} at {NewPosition}")
 		if NewPosition is not None \
 			and not Land.Modify(NewPosition, self.Colour, check=True): 	# new position on Land
 			return False		 # NewPosition is not available  
@@ -140,11 +138,8 @@ class Individual(EI.Individual):
 		if not self.satisfied:
 			# Aging
 			age = simulationStep - self.lastMoved
-			if (self.activateAging == 1) and (simulationStep != 0) and (random.randint(0, 100) < (1 - (1 / (age + 2))) * 100):
-				# print(f"Agent {self.ID} of colour {self.Colour} aged {age} stays put")
+			if (self.agingType == 2) and (simulationStep != 0) and (random.randint(0, 100) < (1 - (1 / (age + 2))) * 100):
 				self.satisfied =  True
-			else:
-				print(f"Agent {self.ID} of colour {self.Colour} aged {age} it's not satisfied")
     
 		return self.satisfied
 
