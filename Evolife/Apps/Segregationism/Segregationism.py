@@ -149,6 +149,11 @@ class Individual(EI.Individual):
 		if Position:
 			return self.locate(Position)
 		else:
+			age = simulationStep - self.lastMoved
+			# Aging 
+			if (self.agingType == 3) and (simulationStep != 0) and (random.randint(0, 100) < (1 - (1 / (age + 2) ))*100):
+				return False	# stays put
+			
 			# pick a random location and go there (TO BE MODIFIED)
 			for ii in range(10): # should work at first attempt most of the time
 				Landing = Land.randomPosition(Content=None, check=True)	# selects an empty cell
@@ -251,7 +256,29 @@ class Population(EP.Population):
 		return Group(self.Scenario, ID=ID, Size=Size)
 
 	def satisfaction(self):	return [(gr.Colour, gr.satisfaction()) for gr in self.groups]
-	
+
+	def global_segregation(self):
+		"""Return average percentage of same-colour neighbours across all agents (0-100).
+		If an agent has no neighbours it is skipped from the average.
+		"""
+		total_pct = 0.0
+		count = 0
+		for gr in self.groups:
+			for I in gr:
+				if I.location is None:
+					continue
+				Stats = Land.InspectNeighbourhood(I.location, 1)
+				Same = Stats[I.Colour]
+				Different = sum([Stats[C] for C in self.Scenario.Colours if C != I.Colour])
+				total = Same + Different
+				if total == 0:
+					continue
+				pct_same = 100.0 * Same / total
+				total_pct += pct_same
+				count += 1
+		print(f"Global segregation: total_pct={total_pct}, count={count}, average={total_pct / count if count else 0}")
+		return total_pct / count if count else 100
+
 	def One_Decision(self):
 		""" This function is repeatedly called by the simulation thread.
 			One agent is randomly chosen and decides what it does
@@ -273,7 +300,9 @@ class Population(EP.Population):
 				self.Observer.curve(Name=f'{Colour} Satisfaction', Value=Satisfaction)
 			# if Satisfactions:
 				# self.Observer.curve(Name='Global Satisfaction', Value=sum([S for (C,S) in Satisfactions])/len(Satisfactions))
-	
+			#global_seg = self.global_segregation()
+			#self.Observer.curve(Name='Global Segregation', Value=global_seg)
+
 		if self.CallsSinceLastMove > 10 * self.popSize:
 			return False	# situation is probably stable
 		return True	# simulation goes on
@@ -300,6 +329,7 @@ if __name__ == "__main__":
 	for Col in Gbl.Colours:
 		Observer.curve(Name=f'{Col} Satisfaction', Color=Col, Legend=f'average satisfaction of {Col} individuals')
 	# Observer.curve(Name='Global Satisfaction', Color='black', Legend='average global satisfaction')
+	#Observer.curve(Name='Global Segregation', Color='black', Legend='average fraction of same-colour neighbours (percent)')
 	
 	EW.Start(Pop.One_Decision, Observer, Capabilities='RPC', Options={'Run':Gbl.get('Run', False)})
 
